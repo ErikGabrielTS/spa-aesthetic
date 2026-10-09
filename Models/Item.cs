@@ -21,7 +21,7 @@ public partial class Item
 
     public virtual ICollection<AtendimentoItem> AtendimentoItems { get; set; } = new List<AtendimentoItem>();
 
-    public virtual Categorium IdCategoriaNavigation { get; set; } = null!;
+    public virtual Categoria IdCategoriaNavigation { get; set; } = null!;
 
     public virtual Produto? Produto { get; set; }
 }

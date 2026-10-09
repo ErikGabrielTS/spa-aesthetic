@@ -4,26 +4,26 @@ using Microsoft.EntityFrameworkCore;
 
 [Route("api/[controller]")]
 [ApiController]
-public class CategoriumController : ControllerBase
+public class CategoriaController : ControllerBase
 {
     private readonly DbAulaBackendContext _context;
 
-    public CategoriumController(DbAulaBackendContext context)
+    public CategoriaController(DbAulaBackendContext context)
     {
         _context = context;
     }
 
-    // GET: api/Categorium
+    // GET: api/Categoria
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Categorium>>> GetCategorias()
+    public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
     {
         return await _context.Categoria.ToListAsync();
     }
 
 
-    // GET: api/Categorium/5
+    // GET: api/Categoria/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Categorium>> GetCategoria(ulong id)
+    public async Task<ActionResult<Categoria>> GetCategoria(ulong id)
     {
         var categoria = await _context.Categoria
             .FirstOrDefaultAsync(c => c.IdCategoria == id);
@@ -37,9 +37,9 @@ public class CategoriumController : ControllerBase
     }
 
 
-    // POST: api/Categorium
+    // POST: api/Categoria
     [HttpPost]
-    public async Task<ActionResult<Categorium>> PostCategoria(Categorium categoria)
+    public async Task<ActionResult<Categoria>> PostCategoria(Categoria categoria)
     {
         _context.Categoria.Add(categoria);
 
@@ -53,11 +53,11 @@ public class CategoriumController : ControllerBase
     }
 
 
-    // PUT: api/Categorium/5
+    // PUT: api/Categoria/5
     [HttpPut("{id}")]
     public async Task<IActionResult> PutCategoria(
         ulong id,
-        Categorium categoria)
+        Categoria categoria)
     {
         if (id != categoria.IdCategoria)
         {
@@ -84,7 +84,7 @@ public class CategoriumController : ControllerBase
     }
 
 
-    // DELETE: api/Categorium/5
+    // DELETE: api/Categoria/5
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCategoria(ulong id)
     {

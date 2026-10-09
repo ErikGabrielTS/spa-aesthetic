@@ -20,7 +20,7 @@ public partial class DbAulaBackendContext : DbContext
 
     public virtual DbSet<AtendimentoItem> AtendimentoItems { get; set; }
 
-    public virtual DbSet<Categorium> Categoria { get; set; }
+    public virtual DbSet<Categoria> Categoria { get; set; }
 
     public virtual DbSet<Endereco> Enderecos { get; set; }
 
@@ -116,18 +116,18 @@ public partial class DbAulaBackendContext : DbContext
                 .HasConstraintName("atendimento_item_item_FK");
         });
 
-        modelBuilder.Entity<Categorium>(entity =>
+        modelBuilder.Entity<Categoria>(entity =>
         {
             entity.HasKey(e => e.IdCategoria).HasName("PRIMARY");
 
             entity.ToTable("categoria");
 
-            entity.HasIndex(e => e.Categoria, "categoria_unique").IsUnique();
+            entity.HasIndex(e => e.Descricao, "categoria_unique").IsUnique();
 
             entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
-            entity.Property(e => e.Categoria)
+            entity.Property(e => e.Descricao)
                 .HasMaxLength(35)
-                .HasColumnName("categoria");
+                .HasColumnName("descricao");
         });
 
         modelBuilder.Entity<Endereco>(entity =>
