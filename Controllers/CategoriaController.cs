@@ -1,4 +1,5 @@
-﻿using AplicacaoAulaBackend.Models;
+﻿using AplicacaoAulaBackend.DTO;
+using AplicacaoAulaBackend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,18 +16,30 @@ public class CategoriaController : ControllerBase
 
     // GET: api/Categoria
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
+    public async Task<ActionResult<IEnumerable<CategoriaResponseDTO>>> GetCategorias()
     {
-        return await _context.Categoria.ToListAsync();
+        return await _context.Categoria
+            .Select(c => new CategoriaResponseDTO
+            {
+                IdCategoria = c.IdCategoria,
+                Descricao = c.Descricao
+            })
+            .ToListAsync();
     }
 
 
     // GET: api/Categoria/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Categoria>> GetCategoria(ulong id)
+    public async Task<ActionResult<CategoriaResponseDTO>> GetCategoria(ulong id)
     {
         var categoria = await _context.Categoria
-            .FirstOrDefaultAsync(c => c.IdCategoria == id);
+            .Where(c => c.IdCategoria == id)
+            .Select(c => new CategoriaResponseDTO
+            {
+                IdCategoria = c.IdCategoria,
+                Descricao = c.Descricao
+            })
+            .FirstOrDefaultAsync();
 
         if (categoria == null)
         {
@@ -39,16 +52,27 @@ public class CategoriaController : ControllerBase
 
     // POST: api/Categoria
     [HttpPost]
-    public async Task<ActionResult<Categoria>> PostCategoria(Categoria categoria)
+    public async Task<ActionResult<CategoriaResponseDTO>> PostCategoria(CategoriaRequestDTO dto)
     {
+        var categoria = new Categoria
+        {
+            Descricao = dto.Descricao,
+        };
+
         _context.Categoria.Add(categoria);
 
         await _context.SaveChangesAsync();
 
+        var response = new CategoriaResponseDTO
+        {
+            IdCategoria = categoria.IdCategoria,
+            Descricao = categoria.Descricao
+        };
+
         return CreatedAtAction(
             nameof(GetCategoria),
             new { id = categoria.IdCategoria },
-            categoria
+            response
         );
     }
 
@@ -57,14 +81,17 @@ public class CategoriaController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> PutCategoria(
         ulong id,
-        Categoria categoria)
+        CategoriaRequestDTO dto)
     {
-        if (id != categoria.IdCategoria)
+        var categoria = await _context.Categoria
+            .FirstOrDefaultAsync(c => c.IdCategoria == id);
+
+        if (categoria == null)
         {
-            return BadRequest();
+            return NotFound();
         }
 
-        _context.Entry(categoria).State = EntityState.Modified;
+        categoria.Descricao = dto.Descricao;
 
         try
         {

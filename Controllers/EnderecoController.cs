@@ -1,0 +1,11 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AplicacaoAulaBackend.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class EnderecoController : ControllerBase
+    {
+    }
+}
