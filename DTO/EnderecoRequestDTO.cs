@@ -1,6 +1,6 @@
-﻿namespace AplicacaoAulaBackend.DTO
+namespace AplicacaoAulaBackend.DTO
 {
-    public class EnderecoDTO
+    public class EnderecoRequestDTO
     {
         public ulong IdPessoa { get; set; }
 

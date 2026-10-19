@@ -18,7 +18,7 @@ public class CategoriaController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CategoriaResponseDTO>>> GetCategorias()
     {
-        return await _context.Categoria
+        return await _context.Categorias
             .Select(c => new CategoriaResponseDTO
             {
                 IdCategoria = c.IdCategoria,
@@ -32,7 +32,7 @@ public class CategoriaController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<CategoriaResponseDTO>> GetCategoria(ulong id)
     {
-        var categoria = await _context.Categoria
+        var categoria = await _context.Categorias
             .Where(c => c.IdCategoria == id)
             .Select(c => new CategoriaResponseDTO
             {
@@ -59,7 +59,7 @@ public class CategoriaController : ControllerBase
             Descricao = dto.Descricao,
         };
 
-        _context.Categoria.Add(categoria);
+        _context.Categorias.Add(categoria);
 
         await _context.SaveChangesAsync();
 
@@ -83,7 +83,7 @@ public class CategoriaController : ControllerBase
         ulong id,
         CategoriaRequestDTO dto)
     {
-        var categoria = await _context.Categoria
+        var categoria = await _context.Categorias
             .FirstOrDefaultAsync(c => c.IdCategoria == id);
 
         if (categoria == null)
@@ -115,7 +115,7 @@ public class CategoriaController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCategoria(ulong id)
     {
-        var categoria = await _context.Categoria
+        var categoria = await _context.Categorias
             .FirstOrDefaultAsync(c => c.IdCategoria == id);
 
         if (categoria == null)
@@ -123,7 +123,7 @@ public class CategoriaController : ControllerBase
             return NotFound();
         }
 
-        _context.Categoria.Remove(categoria);
+        _context.Categorias.Remove(categoria);
 
         await _context.SaveChangesAsync();
 
@@ -133,7 +133,7 @@ public class CategoriaController : ControllerBase
 
     private bool CategoriaExiste(ulong id)
     {
-        return _context.Categoria
+        return _context.Categorias
             .Any(e => e.IdCategoria == id);
     }
 }

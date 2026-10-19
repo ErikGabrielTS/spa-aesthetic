@@ -20,7 +20,7 @@ public partial class DbAulaBackendContext : DbContext
 
     public virtual DbSet<AtendimentoItem> AtendimentoItems { get; set; }
 
-    public virtual DbSet<Categoria> Categoria { get; set; }
+    public virtual DbSet<Categoria> Categorias { get; set; }
 
     public virtual DbSet<Endereco> Enderecos { get; set; }
 
