@@ -38,25 +38,37 @@ namespace AplicacaoAulaBackend.Controllers
         }
 
         [HttpGet("Pessoa/{id}")]
-        public async Task<ActionResult<IEnumerable<AtendimentoResponseDTO>>> GetAtendimentosByIdPessoa(ulong id)
+        public async Task<ActionResult<IEnumerable<PedidoClienteResponseDTO>>> GetAtendimentosByIdPessoa(ulong id)
         {
-            return await _context.Atendimentos
+            if (!await _context.Pessoas.AnyAsync(p => p.IdPessoa == id))
+            {
+                return NotFound("Pessoa não encontrada.");
+            }
+
+            var pedidos = await _context.Atendimentos
                 .Where(a => a.IdPessoa == id)
-                .Select(a => new AtendimentoResponseDTO
+                .OrderByDescending(a => a.DataAtendimento)
+                .Select(a => new PedidoClienteResponseDTO
                 {
                     IdAtendimento = a.IdAtendimento,
-                    IdPessoa = a.IdPessoa,
                     DataAtendimento = a.DataAtendimento,
                     StatusAtendimento = a.StatusAtendimento,
-                    Itens = a.AtendimentoItems.Select(i => new AtendimentoItemResponseDTO
-                    {
-                        IdItem = i.IdItem,
-                        IdFuncionario = i.IdFuncionario,
-                        QuantidadeItens = i.QuantidadeItens,
-                        ValorUnitarioEntrada = i.ValorUnitarioEntrada
-                    }).ToList()
+                    Itens = a.AtendimentoItems
+                        .OrderBy(i => i.IdItemNavigation.Item1)
+                        .Select(i => new PedidoClienteItemResponseDTO
+                        {
+                            IdItem = i.IdItem,
+                            NomeItem = i.IdItemNavigation.Item1,
+                            IdFuncionario = i.IdFuncionario,
+                            Funcionario = i.IdFuncionarioNavigation.Nome,
+                            QuantidadeItens = i.QuantidadeItens,
+                            ValorUnitarioEntrada = i.ValorUnitarioEntrada
+                        })
+                        .ToList()
                 })
                 .ToListAsync();
+
+            return Ok(pedidos);
         }
 
         [HttpGet("{id}")]
