@@ -291,6 +291,111 @@ namespace AplicacaoAulaBackend.Controllers
                 .FirstOrDefaultAsync();
         }
 
+        [HttpPost("Checkout")]
+        public async Task<ActionResult<AtendimentoResponseDTO>> Checkout(CheckoutRequestDTO dto)
+        {
+            if (dto.Itens == null || dto.Itens.Count == 0)
+            {
+                return BadRequest("Informe ao menos um item no pedido.");
+            }
+
+            if (dto.Itens.Any(i => i.QuantidadeItens == 0))
+            {
+                return BadRequest("A quantidade de cada item deve ser maior que zero.");
+            }
+
+            if (dto.Itens.GroupBy(i => i.IdItem).Any(g => g.Count() > 1))
+            {
+                return BadRequest("O pedido contém itens duplicados.");
+            }
+
+            if (!await _context.Pessoas.AnyAsync(p => p.IdPessoa == dto.IdPessoa))
+            {
+                return NotFound("Pessoa não encontrada.");
+            }
+
+            if (!await _context.Funcionarios.AnyAsync(f => f.IdPessoa == dto.IdFuncionario))
+            {
+                return NotFound("Profissional não encontrado.");
+            }
+
+            var itens = new List<AtendimentoItem>();
+
+            foreach (var itemDto in dto.Itens)
+            {
+                if (!await _context.Items.AnyAsync(i => i.IdItem == itemDto.IdItem))
+                {
+                    return NotFound($"Item {itemDto.IdItem} não encontrado.");
+                }
+
+                var valorUnitario = await ObterValorUnitario(new AtendimentoItemRequestDTO
+                {
+                    IdItem = itemDto.IdItem,
+                    IdFuncionario = dto.IdFuncionario,
+                    QuantidadeItens = itemDto.QuantidadeItens
+                });
+
+                if (valorUnitario == null)
+                {
+                    return BadRequest($"Não foi possível determinar o valor do item {itemDto.IdItem}.");
+                }
+
+                itens.Add(new AtendimentoItem
+                {
+                    IdItem = itemDto.IdItem,
+                    IdFuncionario = dto.IdFuncionario,
+                    QuantidadeItens = itemDto.QuantidadeItens,
+                    ValorUnitarioEntrada = valorUnitario.Value
+                });
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var atendimento = new Atendimento
+                {
+                    IdPessoa = dto.IdPessoa,
+                    DataAtendimento = DateTime.Now,
+                    StatusAtendimento = "A",
+                    AtendimentoItems = itens
+                };
+
+                _context.Atendimentos.Add(atendimento);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                var response = new AtendimentoResponseDTO
+                {
+                    IdAtendimento = atendimento.IdAtendimento,
+                    IdPessoa = atendimento.IdPessoa,
+                    DataAtendimento = atendimento.DataAtendimento,
+                    StatusAtendimento = atendimento.StatusAtendimento,
+                    Itens = atendimento.AtendimentoItems.Select(i => new AtendimentoItemResponseDTO
+                    {
+                        IdItem = i.IdItem,
+                        IdFuncionario = i.IdFuncionario,
+                        QuantidadeItens = i.QuantidadeItens,
+                        ValorUnitarioEntrada = i.ValorUnitarioEntrada
+                    }).ToList()
+                };
+
+                return CreatedAtAction(nameof(GetAtendimentoById), new { id = atendimento.IdAtendimento }, response);
+            }
+            catch (DbUpdateException ex)
+            {
+                await transaction.RollbackAsync();
+
+                var mensagem = ex.InnerException?.Message ?? ex.Message;
+
+                return BadRequest(
+                    mensagem.Contains("insuficiente", StringComparison.OrdinalIgnoreCase)
+                        ? mensagem
+                        : "Falha ao registrar o pedido. Verifique o estoque e os dados dos itens."
+                );
+            }
+        }
+
         private bool AtendimentoExiste(ulong id)
         {
             return _context.Atendimentos
@@ -298,3 +403,4 @@ namespace AplicacaoAulaBackend.Controllers
         }
     }
 }
+
